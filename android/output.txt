@@ -1,0 +1,2 @@
+androiddebugkey, 09.07.2012, PrivateKeyEntry, 
+Certificate fingerprint (MD5): 91:73:7B:B5:5A:13:09:5F:94:05:30:03:57:76:A2:91
