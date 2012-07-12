@@ -1,0 +1,2 @@
+# keytool comes with java, example path C:\Program Files (x86)\Java\jre6\bin
+"C:\Program Files (x86)\Java\jre6\bin\keytool.exe" -list -alias androiddebugkey -keystore C:\Users\Oleg\.android\debug.keystore -storepass android -keypass android
