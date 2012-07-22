@@ -26,7 +26,7 @@ public class MainActivity extends MapActivity {
         myLocationOverlay.enableMyLocation();
         myLocationOverlay.enableCompass();
         
-        GeoPoint point = new GeoPoint(55734600, 37586160);
+        GeoPoint point = new GeoPoint(55985978, 37813829);
         ImageView iv = new ImageView(this);
         iv.setImageResource(R.drawable.ic_launcher);
         MapView.LayoutParams lp = new MapView.LayoutParams(MapView.LayoutParams.WRAP_CONTENT, 
@@ -35,8 +35,8 @@ public class MainActivity extends MapActivity {
 
         mapView.addView(iv, lp);
         
-        
         myLocationOverlay.setAim(point);
+        myLocationOverlay.setAimText("Congratulations! You find the hidden object!");
         
         myLocationOverlay.runOnFirstFix(new Runnable() {
         	public void run() {
