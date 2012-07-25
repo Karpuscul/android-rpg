@@ -1,5 +1,8 @@
 package com.example.realliferpg;
 
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 import android.os.Bundle;
 import android.widget.ImageView;
 
@@ -26,7 +29,7 @@ public class MainActivity extends MapActivity {
         myLocationOverlay.enableMyLocation();
         myLocationOverlay.enableCompass();
         
-        GeoPoint point = new GeoPoint(55985978, 37813829);
+        GeoPoint point = new GeoPoint(55734884, 37587083);
         ImageView iv = new ImageView(this);
         iv.setImageResource(R.drawable.ic_launcher);
         MapView.LayoutParams lp = new MapView.LayoutParams(MapView.LayoutParams.WRAP_CONTENT, 
@@ -36,7 +39,12 @@ public class MainActivity extends MapActivity {
         mapView.addView(iv, lp);
         
         myLocationOverlay.setAim(point);
-        myLocationOverlay.setAimText("Congratulations! You find the hidden object!");
+        
+        SortedMap< Integer, String > disttext = new TreeMap< Integer, String >();
+        disttext.put( Integer.valueOf( 300 ), "It's warm!" );
+        disttext.put( Integer.valueOf( 200 ), "Hey! You're almost there!" );
+        disttext.put( Integer.valueOf( 100 ), "Congratulations! You find the hidden object!" );
+        myLocationOverlay.setAimTextInfo( disttext );
         
         myLocationOverlay.runOnFirstFix(new Runnable() {
         	public void run() {

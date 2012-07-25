@@ -1,5 +1,7 @@
 package com.example.realliferpg;
 
+import java.util.SortedMap;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
@@ -17,10 +19,9 @@ import com.google.android.maps.MyLocationOverlay;
 public class ArrowOverlay extends MyLocationOverlay {
 	private final MainActivity mainActivity;
 	private final android.content.Context context;
-	private String text;
+	private SortedMap< Integer, String > disttext;
 	GeoPoint aimPoint;
 	float orientation = 0;
-	boolean pointFound = false;
 	
 	public ArrowOverlay(MainActivity mainActivity, android.content.Context context, MapView mapView)
 	{
@@ -34,8 +35,8 @@ public class ArrowOverlay extends MyLocationOverlay {
 		aimPoint = point;
 	}
 	
-	public void setAimText(String text) {
-		this.text = text;		
+	public void setAimTextInfo(SortedMap< Integer, String > disttext) {
+		this.disttext = disttext;		
 	}
 	
 	private void checkPointFound()
@@ -46,27 +47,32 @@ public class ArrowOverlay extends MyLocationOverlay {
         		aimPoint.getLatitudeE6()/1E6, aimPoint.getLongitudeE6()/1E6, d);
 
         double distance = FloatMath.sqrt( d[ 0 ] * d[ 0 ] + d[ 1 ] * d[ 1 ] + d[ 2 ] * d[ 2 ] );
-        if( distance < 30 )
+        if( distance < disttext.lastKey() )
         {
-        	pointFound = true;
-
         	AlertDialog ad = new AlertDialog.Builder(context).create();  
-        	ad.setCancelable(false);  
-        	ad.setMessage( text );  
+        	ad.setCancelable(false);
+        	ad.setMessage( disttext.get( disttext.lastKey() ) );  
         	ad.setButton("OK", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
-        	        dialog.dismiss();                      
+        	        dialog.dismiss();
 				}  
         	});  
         	ad.show();
+        	
+        	disttext.remove(disttext.lastKey());
         }
+	}
+	
+	private boolean isAimFound()
+	{
+		return disttext.isEmpty();
 	}
 	
     @Override
     public boolean draw(Canvas canvas, MapView mapView, boolean shadow, long when) {
     	boolean ret = super.draw(canvas, mapView, shadow, when);
     	
-    	if( pointFound )
+    	if( isAimFound() )
     		return ret;
     	
         if (!shadow) {                                                       
