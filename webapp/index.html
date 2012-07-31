@@ -1,11 +1,13 @@
 <html>
   <body>
-    <form action="/setpoint" method="post">
-    <table border="0">
-    <tr><td>User:</td><td><input type="text" name="user"></td></tr>
-    <tr><td>Latitude:</td><td><input type="text" name="lat"></td></tr>
-    <tr><td>Longitude:</td><td><input type="text" name="lon"></td></tr>
-    <tr><td>Text:</td><td><input type="text" name="message"></td></tr>
+    <form action="/setpoint" method="get">
+    <table border="0" align="center">
+    <tr><td colspan="2" align="center"><h1>Set point for user</h1></td></tr>
+    {% if msg %}<tr><td colspan="2" align="center"><font color="red">*{{ msg }}</font></td></tr>{% endif %}
+    <tr><td>User:</td><td><input type="text" name="user" value = "{{ user }}"></td></tr>
+    <tr><td>Latitude:</td><td><input type="text" name="lat" value = "{{ lat }}"></td></tr>
+    <tr><td>Longitude:</td><td><input type="text" name="lon" value = "{{ lon }}"></td></tr>
+    <tr><td>Text:</td><td><input type="text" name="message" value = "{{ message }}"></td></tr>
     <tr><td></td><td align="right"><input type="submit" value="Set Point"></td></tr>
     </table>
     </form>
