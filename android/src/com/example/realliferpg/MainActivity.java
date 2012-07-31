@@ -1,10 +1,11 @@
 package com.example.realliferpg;
 
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.LinkedList;
+import java.util.List;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.os.Bundle;
-import android.widget.ImageView;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -12,8 +13,30 @@ import com.google.android.maps.MapView;
 
 public class MainActivity extends MapActivity {
 	MapView mapView;
-	
+	AimUpdater aimUpdater;
 	ArrowOverlay myLocationOverlay;
+	
+	private String getUsername() {
+	    AccountManager manager = AccountManager.get(this); 
+	    Account[] accounts = manager.getAccountsByType("com.google"); 
+	    List<String> possibleEmails = new LinkedList<String>();
+
+	    for (Account account : accounts) {
+	    	// TODO: Check possibleEmail against an email regex or treat
+	    	// account.name as an email address only for certain account.type values.
+	    	possibleEmails.add(account.name);
+	    }
+
+	    if(!possibleEmails.isEmpty() && possibleEmails.get(0) != null){
+	        String email = possibleEmails.get(0);
+	        String[] parts = email.split("@");
+	        if(parts.length > 0 && parts[0] != null)
+	            return parts[0];
+	        else
+	            return null;
+	    }else
+	        return null;
+	}
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -28,23 +51,9 @@ public class MainActivity extends MapActivity {
         mapView.getOverlays().add(myLocationOverlay);
         myLocationOverlay.enableMyLocation();
         myLocationOverlay.enableCompass();
-        
-        GeoPoint point = new GeoPoint(55734884, 37587083);
-        ImageView iv = new ImageView(this);
-        iv.setImageResource(R.drawable.ic_launcher);
-        MapView.LayoutParams lp = new MapView.LayoutParams(MapView.LayoutParams.WRAP_CONTENT, 
-                MapView.LayoutParams.WRAP_CONTENT, point, 0, 0, 
-                MapView.LayoutParams.CENTER);
 
-        mapView.addView(iv, lp);
-        
-        myLocationOverlay.setAim(point);
-        
-        SortedMap< Integer, String > disttext = new TreeMap< Integer, String >();
-        disttext.put( Integer.valueOf( 300 ), "It's warm!" );
-        disttext.put( Integer.valueOf( 200 ), "Hey! You're almost there!" );
-        disttext.put( Integer.valueOf( 100 ), "Congratulations! You find the hidden object!" );
-        myLocationOverlay.setAimTextInfo( disttext );
+        aimUpdater = new AimUpdater( myLocationOverlay, getUsername() );
+        aimUpdater.start();
         
         myLocationOverlay.runOnFirstFix(new Runnable() {
         	public void run() {

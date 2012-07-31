@@ -11,6 +11,7 @@ import android.graphics.Matrix;
 import android.graphics.Point;
 import android.location.Location;
 import android.util.FloatMath;
+import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
@@ -18,25 +19,35 @@ import com.google.android.maps.MyLocationOverlay;
 
 public class ArrowOverlay extends MyLocationOverlay {
 	private final MainActivity mainActivity;
-	private final android.content.Context context;
-	private SortedMap< Integer, String > disttext;
-	GeoPoint aimPoint;
-	float orientation = 0;
+	private AlertDialog ad;
+	private SortedMap< Integer, String > disttext = null;
+	private int id = -1;
+	private GeoPoint aimPoint = null;
 	
 	public ArrowOverlay(MainActivity mainActivity, android.content.Context context, MapView mapView)
 	{
 		super(context, mapView);
 		this.mainActivity = mainActivity;
-		this.context = context;
+		
+		ad = new AlertDialog.Builder(context).create();
+    	ad.setCancelable(false);
+    	ad.setButton("OK", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+			}
+    	});
+    	
 	}
 	
-	public void setAim( GeoPoint point )
+	public void setAim( GeoPoint point, SortedMap< Integer, String > disttext, int id )
 	{
-		aimPoint = point;
+		this.aimPoint = point;
+		this.disttext = disttext;
+		this.id = id;
 	}
 	
-	public void setAimTextInfo(SortedMap< Integer, String > disttext) {
-		this.disttext = disttext;		
+	public int getAimId()
+	{
+		return id;
 	}
 	
 	private void checkPointFound()
@@ -47,36 +58,42 @@ public class ArrowOverlay extends MyLocationOverlay {
         		aimPoint.getLatitudeE6()/1E6, aimPoint.getLongitudeE6()/1E6, d);
 
         double distance = FloatMath.sqrt( d[ 0 ] * d[ 0 ] + d[ 1 ] * d[ 1 ] + d[ 2 ] * d[ 2 ] );
-        if( distance < disttext.lastKey() )
-        {
-        	AlertDialog ad = new AlertDialog.Builder(context).create();  
-        	ad.setCancelable(false);
+        if( distance < disttext.lastKey() && !ad.isShowing() )
+        { 	
+        	Log.e("distance", disttext.get( disttext.lastKey() ) );
         	ad.setMessage( disttext.get( disttext.lastKey() ) );  
-        	ad.setButton("OK", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-        	        dialog.dismiss();
-				}  
-        	});  
         	ad.show();
         	
         	disttext.remove(disttext.lastKey());
         }
 	}
 	
-	private boolean isAimFound()
+	public boolean isAimFound()
 	{
+    	if( aimPoint == null || disttext == null )
+    		return false;
+    	
 		return disttext.isEmpty();
+	}
+	
+	public void clearAim()
+	{
+		aimPoint = null;
+		disttext = null;
 	}
 	
     @Override
     public boolean draw(Canvas canvas, MapView mapView, boolean shadow, long when) {
     	boolean ret = super.draw(canvas, mapView, shadow, when);
     	
+    	if( aimPoint == null || disttext == null )
+    		return ret;
+    	
     	if( isAimFound() )
     		return ret;
     	
         if (!shadow) {                                                       
-            if(getMyLocation() == null)
+            if( getMyLocation() == null )
             	return ret;
 
             checkPointFound();

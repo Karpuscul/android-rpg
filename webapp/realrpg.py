@@ -23,6 +23,14 @@ import webapp2
 from google.appengine.ext import db
 from google.appengine.api import users
 from google.appengine.ext.webapp import template
+from google.appengine.ext.webapp.util import login_required
+
+def isfloat( s ):
+    try:
+        float( s )
+        return True
+    except:
+        return False
 
 class Aim( db.Model ):
     author = db.UserProperty()
@@ -30,13 +38,15 @@ class Aim( db.Model ):
     latitude = db.FloatProperty()
     longitude = db.FloatProperty()
     message = db.StringProperty( multiline = True )
+    completed = db.BooleanProperty()
 
     def to_string( self ):
-        data = { "author": self.author, "user": self.user, "latitude": self.latitude, "longitude": self.longitude, "message": self.message }
+        data = { "id": self.key().id(), "user": self.user, "latitude": self.latitude, "longitude": self.longitude, "message": self.message }
         return json.dumps( data )
 
 
 class MainPage(webapp2.RequestHandler):
+    @login_required
     def get(self):
         path = os.path.join(os.path.dirname(__file__), 'index.html')
         template_values = {}
@@ -44,29 +54,60 @@ class MainPage(webapp2.RequestHandler):
 
 
 class SetPoint(webapp2.RequestHandler):
-    def post(self):
-        aim = Aim()
-        aim.author = users.get_current_user()
-        aim.user = self.request.get( "user" )
-        aim.latitude = float( self.request.get( "lat" ) )
-        aim.longitude = float( self.request.get( "lon" ) )
-        aim.message = self.request.get( "message" )
-        aim.put()
+    def get(self):
+        for aim in Aim.all().filter( "user =", self.request.get( "user" ) ):
+            aim.completed = True
+            aim.put()
 
-        self.response.out.write( "Point is set" )
+        try:
+            if not self.request.get( "user" ):
+                raise Exception( "User is required" )
+            if not isfloat( self.request.get( "lat" ) ):
+                raise Exception( "Latitude is required" )
+            if not isfloat( self.request.get( "lon" ) ):
+                raise Exception( "Longitude is required" )
+            if not self.request.get( "message" ):
+                raise Exception( "Message is required" )
+
+            aim = Aim()
+            aim.author = users.get_current_user()
+            aim.user = self.request.get( "user" )
+            aim.latitude = float( self.request.get( "lat" ) )
+            aim.longitude = float( self.request.get( "lon" ) )
+            aim.message = self.request.get( "message" )
+            aim.completed = False
+
+            aim.put()
+        except Exception, e:
+            path = os.path.join(os.path.dirname(__file__), 'index.html')
+            template_values = { "msg": unicode( e ), "user": self.request.get( "user" ), "lat": self.request.get( "lat" ), 
+                "lon": self.request.get( "lon" ), "message": self.request.get( "message" ) }
+            self.response.out.write(template.render(path, template_values))
+            return
+
+        path = os.path.join(os.path.dirname(__file__), 'pointadded.html')
+        template_values = {}
+        self.response.out.write(template.render(path, template_values))
 
 class GetPoint(webapp2.RequestHandler):
     def get(self):
-        aim = Aim.all().filter( "user =", self.request.get( "user" ) )
-        if aim:
+        aim = Aim.all().filter( "user =", self.request.get( "user" ) ).filter( "completed =", False )
+        if aim.count():
             self.response.out.write( aim[ 0 ].to_string() )
         else:
             self.response.out.write( "EMPTY" )
+
+class CompletePoint(webapp2.RequestHandler):
+    def get(self):
+        for aim in Aim.all().filter( "user =", self.request.get( "user" ) ):
+            aim.completed = True
+            aim.put()
 
 
 app = webapp2.WSGIApplication([
     ( '/', MainPage ),
     ( '/setpoint', SetPoint ),
     ( '/getpoint', GetPoint ),
+    ( '/completepoint', CompletePoint ),
 ], debug=True)
 
