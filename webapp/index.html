@@ -1,15 +1,71 @@
 <html>
-  <body>
-    <form action="/setpoint" method="get">
-    <table border="0" align="center">
-    <tr><td colspan="2" align="center"><h1>Set point for user</h1></td></tr>
-    {% if msg %}<tr><td colspan="2" align="center"><font color="red">*{{ msg }}</font></td></tr>{% endif %}
-    <tr><td>User:</td><td><input type="text" name="user" value = "{{ user }}"></td></tr>
-    <tr><td>Latitude:</td><td><input type="text" name="lat" value = "{{ lat }}"></td></tr>
-    <tr><td>Longitude:</td><td><input type="text" name="lon" value = "{{ lon }}"></td></tr>
-    <tr><td>Text:</td><td><input type="text" name="message" value = "{{ message }}"></td></tr>
-    <tr><td></td><td align="right"><input type="submit" value="Set Point"></td></tr>
-    </table>
-    </form>
-  </body>
+    <head>
+        <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAk5A8aXa0BBYL88v_NF2F1h7lgdZdDBfM&sensor=false"></script>
+        <script type="text/javascript">
+            var marker;
+            var map;
+
+            function initialize() {
+                var lat = {% if lat %}{{ lat }}{% else %}0.0{% endif %};
+                var lon = {% if lon %}{{ lon }}{% else %}0.0{% endif %};
+                var zoom = {% if lat %}8{% else %}1{% endif %};
+                var myLatlng = new google.maps.LatLng( lat, lon );
+
+                var mapOptions = {
+                    center: myLatlng,
+                    zoom: zoom,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                };
+                
+                map = new google.maps.Map( document.getElementById("map_canvas"), mapOptions );
+                marker = new google.maps.Marker({
+                    position: myLatlng,
+                    title: "Hello World!",
+                    draggable: true
+                });
+
+                marker.setMap( map );
+
+                google.maps.event.addListener( marker, 'dragend', function() { 
+                    document.getElementById( "id_lat" ).value = marker.position.lat();
+                    document.getElementById( "id_lon" ).value = marker.position.lng();
+                });
+                
+                google.maps.event.addListener(map, 'click', function(event) {
+                    marker.setPosition( event.latLng );
+                    document.getElementById( "id_lat" ).value = marker.position.lat();
+                    document.getElementById( "id_lon" ).value = marker.position.lng();
+                });        
+            }
+
+            function showPoint()
+            {
+                var lat = document.getElementById( "id_lat" ).value;
+                var lon = document.getElementById( "id_lon" ).value;
+                var latLng = new google.maps.LatLng( lat, lon );
+                marker.setPosition( latLng ); 
+                map.setCenter( latLng );
+            }
+        </script>
+    </head>
+
+    <body onload="initialize()">
+        <form action="/setpoint" method="get">
+        <table border="0" align="center">
+        <tr><td colspan="2" align="center"><h1>Set point for user</h1></td></tr>
+        {% if msg %}<tr><td colspan="2" align="center"><font color="red">*{{ msg }}</font></td></tr>{% endif %}
+        <tr><td>User:</td><td><input type="text" name="user" value = "{{ user }}"></td></tr>
+        <tr><td>Latitude:</td><td><input type="text" name="lat" id="id_lat" value = "{{ lat }}"></td>
+        <tr><td>Longitude:</td><td><input type="text" name="lon" id="id_lon" value = "{{ lon }}"></td></tr>
+        <tr><td colspan="2" align="center"><input type="button" onclick="showPoint()" value="Show Point"></tr>
+        <tr>
+            <td colspan="2" height="300px">
+                <div id="map_canvas" style="width:100%; height:100%"></div>
+            </td>
+        </tr>
+        <tr><td>Text:</td><td><input type="text" name="message" value = "{{ message }}"></td></tr>
+        <tr><td></td><td align="right"><input type="submit" value="Set Point"></td></tr>
+        </table>
+        </form>
+    </body>
 </html>

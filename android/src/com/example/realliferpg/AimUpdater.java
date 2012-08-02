@@ -83,7 +83,7 @@ public class AimUpdater {
 					SortedMap< Integer, String > disttext = new TreeMap< Integer, String >();
 			        disttext.put( Integer.valueOf( 300 ), "It's warm!" );
 			        disttext.put( Integer.valueOf( 200 ), "Hey! You're almost there!" );
-			        disttext.put( Integer.valueOf( 200 ), obj.getString( "message" ) );
+			        disttext.put( Integer.valueOf( 100 ), obj.getString( "message" ) );
 
 			        overlay.setAim( point, disttext, obj.getInt( "id" ) );
 			        
