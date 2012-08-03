@@ -63,6 +63,48 @@ public class MainActivity extends MapActivity {
         });
     }
 
+	protected void stop() {
+    	myLocationOverlay.disableMyLocation();
+    	myLocationOverlay.disableCompass();
+    	aimUpdater.stop();
+	}
+
+	@Override
+    protected void onPause() {
+		stop();
+		super.onPause();
+    }
+    
+    @Override
+    protected void onStop() {
+    	stop();
+    	super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+    	stop();
+    	super.onDestroy();
+    }
+    
+    protected void resume() {
+        myLocationOverlay.enableMyLocation();
+        myLocationOverlay.enableCompass();
+        aimUpdater.start();
+    }
+    
+	@Override
+    protected void onResume() {
+		resume();
+		super.onResume();
+	}
+	
+	@Override
+	protected void onRestart() {
+		resume();
+		super.onRestart();
+	}
+    
 	@Override
 	protected boolean isRouteDisplayed() {
 		// TODO Auto-generated method stub

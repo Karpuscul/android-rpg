@@ -16,16 +16,52 @@ import org.json.JSONObject;
 import com.google.android.maps.GeoPoint;
 
 public class AimUpdater {
-	ArrowOverlay overlay;
+	final ArrowOverlay overlay;
+	final String username;
+	boolean running = false;
 	TimerTask updateTask;
-	Timer timer;
-	String username;
+	Timer timer = null;
 	
-	public AimUpdater( ArrowOverlay overlay, String username )
+	public AimUpdater( ArrowOverlay _overlay, String _username )
 	{
-		this.overlay = overlay;
-		this.username = username;
+		this.overlay = _overlay;
+		this.username = _username;
+		
+		updateTask = new TimerTask() {
+			public void run() {
+				try {
+					if( !running )
+						return;
+					
+					if( overlay.isAimFound() )
+					{
+						if( sendAimCompleted() )
+							overlay.clearAim();
+						else
+							return;
+					}
+					
+					JSONObject obj = retrieveAim( "http://real-life-rpg.appspot.com/getpoint?user=" + username );
+					if( obj.getInt( "id" ) == overlay.getAimId() )
+						return;
+					
+					GeoPoint point = new GeoPoint( ( int )( obj.getDouble( "latitude" ) * 1E6 ), ( int )( obj.getDouble( "longitude" ) * 1E6 ) );
+					
+					SortedMap< Integer, String > disttext = new TreeMap< Integer, String >();
+			        disttext.put( Integer.valueOf( 300 ), "It's warm!" );
+			        disttext.put( Integer.valueOf( 200 ), "Hey! You're almost there!" );
+			        disttext.put( Integer.valueOf( 100 ), obj.getString( "message" ) );
+
+			        overlay.setAim( point, disttext, obj.getInt( "id" ) );
+			        
+				} catch (JSONException e) {
+					return;
+				}
+				
+	        }};
+	        
 		timer = new Timer();
+		timer.schedule( updateTask, 0, 60000 );
 	}
 	
 	private JSONObject retrieveAim( String url )
@@ -61,39 +97,13 @@ public class AimUpdater {
 		}
 	}
 	
-	public void start()
-	{
-		updateTask = new TimerTask() {
-			public void run() {
-				try {
-					if( overlay.isAimFound() )
-					{
-						if( sendAimCompleted() )
-							overlay.clearAim();
-						else
-							return;
-					}
-					
-					JSONObject obj = retrieveAim( "http://real-life-rpg.appspot.com/getpoint?user=" + username );
-					if( obj.getInt( "id" ) == overlay.getAimId() )
-						return;
-					
-					GeoPoint point = new GeoPoint( ( int )( obj.getDouble( "latitude" ) * 1E6 ), ( int )( obj.getDouble( "longitude" ) * 1E6 ) );
-					
-					SortedMap< Integer, String > disttext = new TreeMap< Integer, String >();
-			        disttext.put( Integer.valueOf( 300 ), "It's warm!" );
-			        disttext.put( Integer.valueOf( 200 ), "Hey! You're almost there!" );
-			        disttext.put( Integer.valueOf( 100 ), obj.getString( "message" ) );
-
-			        overlay.setAim( point, disttext, obj.getInt( "id" ) );
-			        
-				} catch (JSONException e) {
-					return;
-				}
-				
-	        }};
-
-		timer.schedule( updateTask, 0, 60000 );
+	public void start() {
+		running = true;
 	}
+	
+	public void stop() {
+		running = false;
+	}
+	
 
 }
