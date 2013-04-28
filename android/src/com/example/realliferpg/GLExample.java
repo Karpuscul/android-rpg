@@ -13,7 +13,7 @@ public class GLExample extends Activity {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		ourSurface = new GLSurfaceView(this);
-		
+		ourSurface.setRenderer(new GLRendererEx());
 		setContentView(ourSurface);
 	}
 
